@@ -71,6 +71,7 @@ export default function Home({ setActivePage }) {
       {/* Hero Section */}
       <section className="hero-bg" style={{
         backgroundImage: 'url("/images/tasbahce_bg.png")',
+        backgroundColor: 'var(--primary-dark)',
         minHeight: '75vh',
         display: 'flex',
         alignItems: 'center',

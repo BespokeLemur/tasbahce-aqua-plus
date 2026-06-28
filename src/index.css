@@ -208,12 +208,12 @@ button, input, select, textarea {
   position: relative;
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
+  background-color: var(--primary-dark);
 }
 
-@media (max-width: 768px) {
+@media (min-width: 1024px) {
   .hero-bg {
-    background-attachment: scroll;
+    background-attachment: fixed;
   }
 }
 
