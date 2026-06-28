@@ -425,6 +425,7 @@ export default function Home({ setActivePage }) {
       <style dangerouslySetInnerHTML={{__html: `
         @media (max-width: 900px) {
           .section-row { flex-direction: column !important; }
+          .section-row > div { width: 100% !important; }
           .reservation-container { flex-direction: column !important; }
         }
       `}} />
