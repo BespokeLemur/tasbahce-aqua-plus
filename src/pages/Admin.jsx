@@ -83,6 +83,14 @@ export default function Admin({
   // Kitchen / Nargile local order printer states
   const [activePrintSlip, setActivePrintSlip] = useState(null);
 
+  // Custom Confirm Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null
+  });
+
   // Monitor orders to trigger notification for waiter
   const prevOrdersRef = useRef(orders);
 
@@ -393,6 +401,7 @@ export default function Admin({
               orders={orders} setOrders={setOrders}
               users={users} setUsers={setUsers}
               adminTab={adminTab} setAdminTab={setAdminTab}
+              setConfirmModal={setConfirmModal}
             />
           )}
 
@@ -409,6 +418,7 @@ export default function Admin({
               role={currentUser.role}
               menuItems={menuItems}
               orders={orders} setOrders={setOrders}
+              setConfirmModal={setConfirmModal}
             />
           )}
 
@@ -465,6 +475,86 @@ export default function Admin({
           box-shadow: 0 0 0 2px var(--primary-dark);
         }
       `}} />
+
+      {/* Custom Confirm Modal */}
+      {confirmModal.isOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 76, 129, 0.4)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 2000,
+          padding: '20px'
+        }} className="animate-fade-in">
+          <div className="glass-card animate-scale-in" style={{
+            width: '100%',
+            maxWidth: '400px',
+            padding: '30px',
+            backgroundColor: '#ffffff',
+            boxShadow: 'var(--shadow-lg)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            border: '1px solid rgba(15, 76, 129, 0.15)'
+          }}>
+            <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+              <div style={{
+                background: '#ffebee',
+                color: '#c62828',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <AlertTriangle size={20} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <h4 style={{ fontSize: '1.15rem', color: '#c62828', fontWeight: 700, margin: 0 }}>
+                  {confirmModal.title || 'Onay Gerekiyor'}
+                </h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                  {confirmModal.message}
+                </p>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button 
+                onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })} 
+                className="btn btn-secondary" 
+                style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              >
+                İptal
+              </button>
+              <button 
+                onClick={() => {
+                  if (confirmModal.onConfirm) confirmModal.onConfirm();
+                  setConfirmModal({ ...confirmModal, isOpen: false });
+                }} 
+                className="btn" 
+                style={{
+                  background: 'linear-gradient(135deg, #e53935, #c62828)',
+                  color: 'white',
+                  padding: '8px 18px',
+                  fontSize: '0.85rem',
+                  boxShadow: '0 4px 10px rgba(198, 40, 40, 0.2)',
+                  border: 'none',
+                  borderRadius: '30px',
+                  cursor: 'pointer'
+                }}
+              >
+                Evet, Sil
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -472,7 +562,7 @@ export default function Admin({
 /* ==========================================
    ROLE 1: YÖNETİCİ (ADMIN) DASHBOARD
    ========================================== */
-function AdminDashboard({ menuItems, setMenuItems, orders, setOrders, users, setUsers, adminTab, setAdminTab }) {
+function AdminDashboard({ menuItems, setMenuItems, orders, setOrders, users, setUsers, adminTab, setAdminTab, setConfirmModal }) {
   // Menu form local states
   const [newItem, setNewItem] = useState({ name: '', price: '', category: 'yemek', description: '', image: '/images/cafe_interior.png' });
   const [editItemId, setEditItemId] = useState(null);
@@ -522,11 +612,16 @@ function AdminDashboard({ menuItems, setMenuItems, orders, setOrders, users, set
   };
 
   const handleDeleteMenu = (id) => {
-    if (window.confirm('Bu menüyü silmek istediğinizden emin misiniz?')) {
-      const updatedMenu = menuItems.filter(item => item.id !== id);
-      setMenuItems(updatedMenu);
-      localStorage.setItem('menu', JSON.stringify(updatedMenu));
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Menü Öğesini Sil',
+      message: 'Bu menü öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
+      onConfirm: () => {
+        const updatedMenu = menuItems.filter(item => item.id !== id);
+        setMenuItems(updatedMenu);
+        localStorage.setItem('menu', JSON.stringify(updatedMenu));
+      }
+    });
   };
 
   const handleAddStaff = (e) => {
@@ -546,11 +641,16 @@ function AdminDashboard({ menuItems, setMenuItems, orders, setOrders, users, set
       alert('Ana yönetici silinemez!');
       return;
     }
-    if (window.confirm('Bu personeli silmek istediğinizden emin misiniz?')) {
-      const updatedUsers = users.filter(user => user.id !== id);
-      setUsers(updatedUsers);
-      localStorage.setItem('users', JSON.stringify(updatedUsers));
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Personeli Çıkar',
+      message: 'Bu personeli kadrodan silmek istediğinizden emin misiniz? Sistem erişimi sonlandırılacaktır.',
+      onConfirm: () => {
+        const updatedUsers = users.filter(user => user.id !== id);
+        setUsers(updatedUsers);
+        localStorage.setItem('users', JSON.stringify(updatedUsers));
+      }
+    });
   };
 
   return (
@@ -610,11 +710,16 @@ function AdminDashboard({ menuItems, setMenuItems, orders, setOrders, users, set
                         <td style={{ padding: '12px 8px' }}>
                           <button 
                             onClick={() => {
-                              if (window.confirm('Bu siparişi silmek istiyor musunuz?')) {
-                                const updated = orders.filter(o => o.id !== order.id);
-                                setOrders(updated);
-                                localStorage.setItem('orders', JSON.stringify(updated));
-                              }
+                              setConfirmModal({
+                                isOpen: true,
+                                title: 'Siparişi İptal Et',
+                                message: `Masa ${order.tableName} için açılan bu siparişi silmek istediğinizden emin misiniz?`,
+                                onConfirm: () => {
+                                  const updated = orders.filter(o => o.id !== order.id);
+                                  setOrders(updated);
+                                  localStorage.setItem('orders', JSON.stringify(updated));
+                                }
+                              });
                             }}
                             className="btn btn-secondary" 
                             style={{ padding: '6px 12px', fontSize: '0.75rem', borderRadius: '15px', color: '#c62828' }}
@@ -1273,7 +1378,7 @@ function WaiterDashboard({ menuItems, orders, setOrders, selectedTable, setSelec
 /* ==========================================
    ROLE 3: KAFE/MUTFAK & NARGİLE DASHBOARDS
    ========================================== */
-function KitchenDashboard({ role, menuItems, orders, setOrders }) {
+function KitchenDashboard({ role, menuItems, orders, setOrders, setConfirmModal }) {
   const [basket, setBasket] = useState([]);
   const [extraOrderTable, setExtraOrderTable] = useState('Masa 1');
 
@@ -1304,11 +1409,16 @@ function KitchenDashboard({ role, menuItems, orders, setOrders }) {
   };
 
   const handleDeleteOrder = (orderId) => {
-    if (window.confirm('Bu siparişi tamamen silmek istediğinizden emin misiniz?')) {
-      const updated = orders.filter(o => o.id !== orderId);
-      setOrders(updated);
-      localStorage.setItem('orders', JSON.stringify(updated));
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Siparişi Sil / İptal Et',
+      message: 'Bu siparişi tamamen silmek istediğinizden emin misiniz? Fiş listeden çıkarılacaktır.',
+      onConfirm: () => {
+        const updated = orders.filter(o => o.id !== orderId);
+        setOrders(updated);
+        localStorage.setItem('orders', JSON.stringify(updated));
+      }
+    });
   };
 
   // Direct Extra Order actions
