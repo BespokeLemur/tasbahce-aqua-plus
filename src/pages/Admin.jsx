@@ -410,6 +410,7 @@ export default function Admin({
               menuItems={menuItems}
               orders={orders} setOrders={setOrders}
               selectedTable={selectedTable} setSelectedTable={setSelectedTable}
+              currentUser={currentUser}
             />
           )}
 
@@ -419,6 +420,7 @@ export default function Admin({
               menuItems={menuItems}
               orders={orders} setOrders={setOrders}
               setConfirmModal={setConfirmModal}
+              currentUser={currentUser}
             />
           )}
 
@@ -673,6 +675,7 @@ function AdminDashboard({ menuItems, setMenuItems, orders, setOrders, users, set
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border-glass)', paddingBottom: '10px' }}>
                   <th style={{ padding: '12px 8px' }}>Masa</th>
+                  <th style={{ padding: '12px 8px' }}>Oluşturan</th>
                   <th style={{ padding: '12px 8px' }}>Sipariş Detayı</th>
                   <th style={{ padding: '12px 8px' }}>Tutar</th>
                   <th style={{ padding: '12px 8px' }}>Tarih / Saat</th>
@@ -687,6 +690,11 @@ function AdminDashboard({ menuItems, setMenuItems, orders, setOrders, users, set
                     return (
                       <tr key={order.id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
                         <td style={{ padding: '12px 8px', fontWeight: 'bold' }}>{order.tableName}</td>
+                        <td style={{ padding: '12px 8px', fontSize: '0.8rem' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--primary-dark)', backgroundColor: '#f0f4f8', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>
+                            {order.createdBy || 'Bilinmiyor'}
+                          </span>
+                        </td>
                         <td style={{ padding: '12px 8px', fontSize: '0.85rem' }}>
                           {order.items.map((item, idx) => (
                             <div key={idx}>
@@ -1067,7 +1075,7 @@ function AdminDashboard({ menuItems, setMenuItems, orders, setOrders, users, set
 /* ==========================================
    ROLE 2: GARSON (WAITER) DASHBOARD
    ========================================== */
-function WaiterDashboard({ menuItems, orders, setOrders, selectedTable, setSelectedTable }) {
+function WaiterDashboard({ menuItems, orders, setOrders, selectedTable, setSelectedTable, currentUser }) {
   const [basket, setBasket] = useState([]);
   const [activeSubTab, setActiveSubTab] = useState('menu'); // 'menu' or 'aktif'
   const [orderNote, setOrderNote] = useState('');
@@ -1107,6 +1115,7 @@ function WaiterDashboard({ menuItems, orders, setOrders, selectedTable, setSelec
     const newOrder = {
       id: `ord_${Date.now()}`,
       tableName: selectedTable,
+      createdBy: currentUser ? currentUser.name : 'Garson',
       items: basket.map(b => ({
         id: b.id,
         name: b.name,
@@ -1378,7 +1387,7 @@ function WaiterDashboard({ menuItems, orders, setOrders, selectedTable, setSelec
 /* ==========================================
    ROLE 3: KAFE/MUTFAK & NARGİLE DASHBOARDS
    ========================================== */
-function KitchenDashboard({ role, menuItems, orders, setOrders, setConfirmModal }) {
+function KitchenDashboard({ role, menuItems, orders, setOrders, setConfirmModal, currentUser }) {
   const [basket, setBasket] = useState([]);
   const [extraOrderTable, setExtraOrderTable] = useState('Masa 1');
 
@@ -1445,6 +1454,7 @@ function KitchenDashboard({ role, menuItems, orders, setOrders, setConfirmModal 
     const newOrder = {
       id: `ord_${Date.now()}`,
       tableName: extraOrderTable,
+      createdBy: currentUser ? currentUser.name : (role === 'nargile' ? 'Nargile Kafe' : 'Kafe Mutfak'),
       items: basket.map(b => ({
         id: b.id,
         name: b.name,
@@ -1488,7 +1498,12 @@ function KitchenDashboard({ role, menuItems, orders, setOrders, setConfirmModal 
                   gap: '12px'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <strong style={{ fontSize: '1.1rem', color: 'var(--primary-dark)' }}>{order.tableName}</strong>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <strong style={{ fontSize: '1.1rem', color: 'var(--primary-dark)' }}>{order.tableName}</strong>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--primary-dark)', backgroundColor: '#f0f4f8', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>
+                        {order.createdBy || 'Bilinmeyen Personel'}
+                      </span>
+                    </div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       Saat: {new Date(order.timestamp).toLocaleTimeString()}
                     </span>
